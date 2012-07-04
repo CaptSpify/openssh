@@ -18,7 +18,7 @@
 #
 
 packages = case node[:platform]
-  when "centos","redhat","fedora","scientific"
+  when "centos","redhat","fedora"
     %w{openssh-clients openssh}
   when "arch"
     %w{openssh}
@@ -32,7 +32,7 @@ end
 
 service "ssh" do
   case node[:platform]
-  when "centos","redhat","fedora","arch","scientific"
+  when "centos","redhat","fedora","arch"
     service_name "sshd"
   else
     service_name "ssh"
@@ -46,10 +46,70 @@ service "ssh" do
     "centos" => { "default" => [ :restart, :reload, :status ] },
     "redhat" => { "default" => [ :restart, :reload, :status ] },
     "fedora" => { "default" => [ :restart, :reload, :status ] },
-    "scientific" => { "default" => [ :restart, :reload, :status ] },
     "arch" => { "default" => [ :restart ] },
     "default" => { "default" => [:restart, :reload ] }
   )
   action [ :enable, :start ]
 end
 
+template "/etc/ssh/sshd_config" do
+  source "sshd_config.erb"
+  variables( 
+    :Port => "22"
+    :AddressFamily => "any"
+    :ListenAddress1 => "0.0.0.0"
+    :ListenAddress2 => "::"
+    :Protocol => "2"
+    :HostKey1 => "/etc/ssh/ssh_host_key"
+    :HostKey2 => "/etc/ssh/ssh_host_rsa_key"
+    :HostKey3 => "/etc/ssh/ssh_host_dsa_key"
+    :KeyRegenerationInterval => "1h"
+    :ServerKeyBits => "1024"
+    :SyslogFacility => "AUTH"
+    :LogLevel => "INFO"
+    :LoginGraceTime => "2m"
+    :PermitRootLogin => "yes"
+    :StrictModes => "yes"
+    :MaxAuthTries => "6"
+    :MaxSessions => "10"
+    :RSAAuthentication => "yes"
+    :PubkeyAuthentication => "yes"
+    :AuthorizedKeysFile => ".ssh/authorized_keys"
+    :RhostsRSAAuthentication => "no"
+    :HostbasedAuthentication => "no"
+    :IgnoreUserKnownHosts => "no"
+    :IgnoreRhosts => "yes"
+    :PasswordAuthentication => "yes"
+    :PermitEmptyPasswords => "no"
+    :ChallengeResponseAuthentication => "yes"
+    :KerberosAuthentication => "no"
+    :KerberosOrLocalPasswd => "yes"
+    :KerberosTicketCleanup => "yes"
+    :KerberosGetAFSToken => "no"
+    :GSSAPIAuthentication => "no"
+    :GSSAPICleanupCredentials => "yes"
+    :UsePAM => "no"
+    :AllowAgentForwarding => "yes"
+    :AllowTcpForwarding => "yes"
+    :GatewayPorts => "no"
+    :X11Forwarding => "no"
+    :X11DisplayOffset => "10"
+    :X11UseLocalhost => "yes"
+    :PrintMotd => "yes"
+    :PrintLastLog => "yes"
+    :TCPKeepAlive => "yes"
+    :UseLogin => "no"
+    :UsePrivilegeSeparation => "yes"
+    :PermitUserEnvironment => "no"
+    :Compression => "delayed"
+    :ClientAliveInterval => "0"
+    :ClientAliveCountMax => "3"
+    :UseDNS => "yes"
+    :PidFile => "/var/run/sshd.pid"
+    :MaxStartups => "10"
+    :PermitTunnel => "no"
+    :ChrootDirectory => "none"
+    :Banner => "none"
+    :Subsystem => "sftp /usr/libexec/sftp-server"
+  )
+end
