@@ -30,28 +30,6 @@ packages.each do |pkg|
   package pkg
 end
 
-service "ssh" do
-  case node[:platform]
-  when "centos","redhat","fedora","arch"
-    service_name "sshd"
-  else
-    service_name "ssh"
-  end
-  supports value_for_platform(
-    "debian" => { "default" => [ :restart, :reload, :status ] },
-    "ubuntu" => {
-      "8.04" => [ :restart, :reload ],
-      "default" => [ :restart, :reload, :status ]
-    },
-    "centos" => { "default" => [ :restart, :reload, :status ] },
-    "redhat" => { "default" => [ :restart, :reload, :status ] },
-    "fedora" => { "default" => [ :restart, :reload, :status ] },
-    "arch" => { "default" => [ :restart ] },
-    "default" => { "default" => [:restart, :reload ] }
-  )
-  action [ :enable, :start ]
-end
-
 template "/etc/ssh/sshd_config" do
   source "sshd_config.erb"
   variables( 
@@ -112,4 +90,26 @@ template "/etc/ssh/sshd_config" do
     :Banner => "none"
     :Subsystem => "sftp /usr/libexec/sftp-server"
   )
+end
+
+service "ssh" do
+  case node[:platform]
+  when "centos","redhat","fedora","arch"
+    service_name "sshd"
+  else
+    service_name "ssh"
+  end
+  supports value_for_platform(
+    "debian" => { "default" => [ :restart, :reload, :status ] },
+    "ubuntu" => {
+      "8.04" => [ :restart, :reload ],
+      "default" => [ :restart, :reload, :status ]
+    },
+    "centos" => { "default" => [ :restart, :reload, :status ] },
+    "redhat" => { "default" => [ :restart, :reload, :status ] },
+    "fedora" => { "default" => [ :restart, :reload, :status ] },
+    "arch" => { "default" => [ :restart ] },
+    "default" => { "default" => [:restart, :reload ] }
+  )
+  action [ :enable, :start ]
 end
